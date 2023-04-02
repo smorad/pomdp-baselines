@@ -1,4 +1,3 @@
-# -*- coding: future_fstrings -*-
 import sys, os, time
 
 t0 = time.time()
@@ -43,7 +42,7 @@ if FLAGS.algo is not None:
     v["policy"]["algo_name"] = FLAGS.algo
 
 seq_model, algo = v["policy"]["seq_model"], v["policy"]["algo_name"]
-assert seq_model in ["mlp", "lstm", "gru", "lstm-mlp", "gru-mlp"]
+assert seq_model in ["mlp", "lstm", "gru", "lstm-mlp", "gru-mlp", "ffm"]
 assert algo in ["td3", "sac", "sacd"]
 
 if FLAGS.automatic_entropy_tuning is not None:
@@ -139,7 +138,7 @@ if seq_model != "mlp":
 
 os.makedirs(exp_id, exist_ok=True)
 log_folder = os.path.join(exp_id, system.now_str())
-logger_formats = ["stdout", "log", "csv"]
+logger_formats = ["stdout", "log", "csv", "wandb"]
 if v["eval"]["log_tensorboard"]:
     logger_formats.append("tensorboard")
 logger.configure(dir=log_folder, format_strs=logger_formats, precision=4)

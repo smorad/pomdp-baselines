@@ -55,13 +55,27 @@ class Actor_RNN(nn.Module):
         self.encoder = encoder
         self.num_layers = rnn_num_layers
 
-        self.rnn = RNNs[encoder](
-            input_size=rnn_input_size,
-            hidden_size=self.rnn_hidden_size,
-            num_layers=self.num_layers,
-            batch_first=False,
-            bias=True,
-        )
+        if encoder == FFM_name:
+            # Original run was memory_size = hidden_size // 4 (term2)
+            # new run (term3) also ortho/zero init
+            context_size = self.rnn_hidden_size // 32
+            memory_size = self.rnn_hidden_size // context_size
+            self.rnn = RNNs[encoder](
+                input_size=rnn_input_size,
+                hidden_size=self.rnn_hidden_size,
+                memory_size=memory_size,
+                context_size=context_size,
+                output_size=self.rnn_hidden_size,
+                batch_first=False,
+            )
+        else:
+            self.rnn = RNNs[encoder](
+                input_size=rnn_input_size,
+                hidden_size=self.rnn_hidden_size,
+                num_layers=self.num_layers,
+                batch_first=False,
+                bias=True,
+            )
         # never add activation after GRU cell, cuz the last operation of GRU is tanh
 
         # default gru initialization is uniform, not recommended
@@ -153,6 +167,8 @@ class Actor_RNN(nn.Module):
         hidden_state = ptu.zeros((self.num_layers, 1, self.rnn_hidden_size)).float()
         if self.encoder == GRU_name:
             internal_state = hidden_state
+        elif self.encoder == FFM_name:
+            internal_state = self.rnn.initial_state().to(reward.device)
         else:
             cell_state = ptu.zeros((self.num_layers, 1, self.rnn_hidden_size)).float()
             internal_state = (hidden_state, cell_state)

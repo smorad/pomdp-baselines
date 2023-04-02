@@ -53,13 +53,27 @@ class Critic_RNN(nn.Module):
         assert encoder in RNNs
         self.encoder = encoder
 
-        self.rnn = RNNs[encoder](
-            input_size=rnn_input_size,
-            hidden_size=self.rnn_hidden_size,
-            num_layers=rnn_num_layers,
-            batch_first=False,
-            bias=True,
-        )
+        if encoder == FFM_name:
+            # Original run was memory_size = hidden_size // 4 (term2)
+            # new run (term3) also ortho/zero init
+            context_size = self.rnn_hidden_size // 32
+            memory_size = self.rnn_hidden_size // context_size
+            self.rnn = RNNs[encoder](
+                input_size=rnn_input_size,
+                hidden_size=self.rnn_hidden_size,
+                memory_size=memory_size,
+                context_size=context_size,
+                output_size=self.rnn_hidden_size,
+                batch_first=False,
+            )
+        else:
+            self.rnn = RNNs[encoder](
+                input_size=rnn_input_size,
+                hidden_size=self.rnn_hidden_size,
+                num_layers=rnn_num_layers,
+                batch_first=False,
+                bias=True,
+            )
 
         for name, param in self.rnn.named_parameters():
             if "bias" in name:

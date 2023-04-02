@@ -6,7 +6,8 @@ import time
 import datetime
 import dateutil.tz
 import tempfile
-from collections import OrderedDict, Set
+from collections import OrderedDict
+import wandb
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -24,7 +25,7 @@ ERROR = 40
 DISABLED = 50
 
 
-class OrderedSet(Set):
+class OrderedSet(set):
     # https://stackoverflow.com/a/10006674/9072850
     def __init__(self, iterable=()):
         self.d = OrderedDict.fromkeys(iterable)
@@ -206,6 +207,36 @@ class TensorBoardOutputFormat(KVWriter):
             self.writer.Close()
             self.writer = None
 
+class WandbOutputFormat(KVWriter):
+    def __init__(self, dir):
+        string = dir.split('/')
+        task_type = 'FFM_' + string[1]
+        task = '-'.join(string[2:4])
+        model = string[4]
+        hparams = string[5:]
+
+        wandb.init(
+            project=task_type,
+            group=task,
+            job_type=model,
+            name='_'.join((task, model)),
+            notes=dir,
+        )
+        self.step = 0
+
+    def writekvs(self, kvs):
+        wandb.log(kvs, self.step)
+
+    def add_figure(self, tag, figure):
+        pass
+
+    def set_step(self, step):
+        self.step = step
+
+    def close(self):
+        wandb.finish()
+
+
 
 def make_output_format(format, ev_dir, log_suffix=""):
     os.makedirs(ev_dir, exist_ok=True)
@@ -219,6 +250,8 @@ def make_output_format(format, ev_dir, log_suffix=""):
         return CSVOutputFormat(osp.join(ev_dir, "progress.csv"))
     elif format == "tensorboard":
         return TensorBoardOutputFormat(ev_dir)
+    elif format == "wandb":
+        return WandbOutputFormat(ev_dir)
     else:
         raise ValueError("Unknown format specified: %s" % (format,))
 
@@ -390,6 +423,8 @@ class Logger(object):
     def set_tb_step(self, step):
         for fmt in self.output_formats:
             if isinstance(fmt, TensorBoardOutputFormat):
+                fmt.set_step(step)
+            elif isinstance(fmt, WandbOutputFormat):
                 fmt.set_step(step)
 
     def dumpkvs(self):
