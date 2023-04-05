@@ -64,6 +64,8 @@ class Critic_RNN(nn.Module):
                 memory_size=memory_size,
                 context_size=context_size,
                 output_size=self.rnn_hidden_size,
+                max_period=128,
+                #max_len=64,
                 batch_first=False,
             )
         else:
@@ -75,11 +77,11 @@ class Critic_RNN(nn.Module):
                 bias=True,
             )
 
-        for name, param in self.rnn.named_parameters():
-            if "bias" in name:
-                nn.init.constant_(param, 0)
-            elif "weight" in name:
-                nn.init.orthogonal_(param)
+            for name, param in self.rnn.named_parameters():
+                if "bias" in name:
+                    nn.init.constant_(param, 0)
+                elif "weight" in name:
+                    nn.init.orthogonal_(param)
 
         ## 3. build another obs+act branch
         shortcut_embedding_size = rnn_input_size

@@ -66,6 +66,8 @@ class Actor_RNN(nn.Module):
                 memory_size=memory_size,
                 context_size=context_size,
                 output_size=self.rnn_hidden_size,
+                max_period=128,
+                #max_len=64,
                 batch_first=False,
             )
         else:
@@ -76,16 +78,16 @@ class Actor_RNN(nn.Module):
                 batch_first=False,
                 bias=True,
             )
-        # never add activation after GRU cell, cuz the last operation of GRU is tanh
+            # never add activation after GRU cell, cuz the last operation of GRU is tanh
 
-        # default gru initialization is uniform, not recommended
-        # https://smerity.com/articles/2016/orthogonal_init.html orthogonal has eigenvalue = 1
-        # to prevent grad explosion or vanishing
-        for name, param in self.rnn.named_parameters():
-            if "bias" in name:
-                nn.init.constant_(param, 0)
-            elif "weight" in name:
-                nn.init.orthogonal_(param)
+            # default gru initialization is uniform, not recommended
+            # https://smerity.com/articles/2016/orthogonal_init.html orthogonal has eigenvalue = 1
+            # to prevent grad explosion or vanishing
+            for name, param in self.rnn.named_parameters():
+                if "bias" in name:
+                    nn.init.constant_(param, 0)
+                elif "weight" in name:
+                    nn.init.orthogonal_(param)
 
         ## 3. build another obs branch
         if self.image_encoder is None:
