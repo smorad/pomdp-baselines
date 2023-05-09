@@ -21,10 +21,11 @@ CONFIGS_FFM_V=(configs/pomdp/hopper_blt/v/ffm.yml
 SEED=$1
 CUDA=$2
 declare -n CONFIGS=$3
+EXTRA=$4
 
 echo $CONFIGS
 
 for cfg in ${CONFIGS[@]}; do
-	python3 policies/main.py --cfg $cfg --cuda $2 --seed $1 &
+	python3 policies/main.py --cfg $cfg --cuda $2 --seed $1 $4 &
 done
 wait
