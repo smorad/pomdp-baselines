@@ -4,7 +4,6 @@ ale-py==0.7.5
 appdirs==1.4.4
 attrs==22.2.0
 Box2D==2.3.2
-box2d-py==2.3.5
 box2d-kengz
 certifi==2022.12.7
 cffi==1.15.1
@@ -30,7 +29,8 @@ gitdb==4.0.10
 GitPython==3.1.31
 glfw==2.5.7
 grpcio==1.51.3
-gym==0.21.0
+gym==0.22.0
+swig
 gym-notices==0.0.8
 Gymnasium==0.26.3
 gymnasium-notices==0.0.1
